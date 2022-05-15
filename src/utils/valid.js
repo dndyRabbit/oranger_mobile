@@ -24,48 +24,43 @@ export const valid = ({email, password, password_confirmation}) => {
 };
 
 export const valid2 = ({
-  namaLengkap,
-  noKTP,
-  jenisKelamin,
-  alamatLengkap,
-  tanggalLahir,
-  noHandphone,
-  kelurahan,
+  fullName,
+  ktp,
+  gender,
+  address,
+  birthday,
+  handphone,
 }) => {
   const err = {};
 
-  if (!namaLengkap) {
-    err.namaLengkap = 'Mohon isi nama lengkap anda.';
+  if (!fullName) {
+    err.fullName = 'Mohon isi nama lengkap anda.';
   }
 
-  if (!noKTP) {
-    err.noKTP = 'Please add your No KTP .';
-  } else if (noKTP.replace(/ /g, '').length < 15) {
-    err.noKTP = 'No KTP kurang dari 16.';
+  if (!ktp) {
+    err.ktp = 'Please add your No KTP .';
+  } else if (ktp.replace(/ /g, '').length < 15) {
+    err.ktp = 'No KTP kurang dari 16.';
   }
 
-  if (!jenisKelamin) {
-    err.jenisKelamin = 'Mohon isi jenis kelamin anda.';
+  if (!gender) {
+    err.gender = 'Mohon isi jenis kelamin anda.';
   }
 
-  if (tanggalLahir === new Date()) {
-    err.tanggalLahir = 'Mohon isi tanggal lahir anda.';
+  if (birthday === new Date()) {
+    err.birthday = 'Mohon isi tanggal lahir anda.';
   }
 
-  if (!alamatLengkap) {
-    err.alamatLengkap = 'Mohon isi alamat lengkap anda.';
+  if (!address) {
+    err.address = 'Mohon isi alamat lengkap anda.';
   }
 
-  if (!noHandphone) {
-    err.noHandphone = 'Mohon isi nomor handphone anda.';
-  } else if (noHandphone.replace(/ /g, '').length > 13) {
-    err.noHandphone = 'No handphone tidak boleh lebih dari 13.';
-  } else if (noHandphone.replace(/ /g, '').length <= 11) {
-    err.noHandphone = 'No Handphone kurang dari 11.';
-  }
-
-  if (!kelurahan) {
-    err.kelurahan = 'Mohon isi kelurahan anda.';
+  if (!handphone) {
+    err.handphone = 'Mohon isi nomor handphone anda.';
+  } else if (handphone.replace(/ /g, '').length > 13) {
+    err.handphone = 'No handphone tidak boleh lebih dari 13.';
+  } else if (handphone.replace(/ /g, '').length <= 11) {
+    err.handphone = 'No Handphone kurang dari 11.';
   }
 
   return {

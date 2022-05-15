@@ -1,39 +1,59 @@
 import {GLOBALTYPES} from './globalTypes';
-import {getDataAPI} from '../../utils/fetchData';
-import valid from '../../utils/valid';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {patchDataAPI} from '../../utils/fetchData';
+import {imageUpload} from '../../utils/imageUpload';
 
-export const PETUGASTYPES = {
-  GET_PETUGAS: 'GET_PETUGAS',
+export const PETUGAS_TYPES = {
+  PATCH_PETUGAS_PROFILE: 'PATCH_PETUGAS_PROFILE',
 };
 
-export const petugasData =
-  ({auth}) =>
+export const updateProfilePetugas =
+  ({newData, auth, avatar}) =>
   async dispatch => {
     try {
+      let media;
+      const {namaLengkap, noKTP, noHandphone, alamatLengkap, tanggalLahir} =
+        newData;
       dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-      const res = await getDataAPI('getPetugas', auth.token);
 
-      if (res)
-        dispatch({
-          type: PETUGASTYPES.GET_PETUGAS,
-          payload: {
-            user: res.data.user,
+      if (avatar) media = await imageUpload(avatar);
+      console.log(newData, media);
+
+      const res = await patchDataAPI(
+        `updatePetugas/${auth.user._id}`,
+        {
+          ...newData,
+          avatar: avatar ? media[0].url : auth.user.avatar,
+        },
+        auth.token,
+      );
+
+      dispatch({
+        type: GLOBALTYPES.AUTH,
+        payload: {
+          ...auth,
+          user: {
+            ...auth.user,
+            namaLengkap: namaLengkap ? namaLengkap : auth.user.namaLengkap,
+            noKTP: noKTP ? noKTP : auth.user.noKTP,
+            noHandphone: noHandphone ? noHandphone : auth.user.noHandphone,
+            alamatLengkap: alamatLengkap
+              ? alamatLengkap
+              : auth.user.alamatLengkap,
+            tanggalLahir: tanggalLahir ? tanggalLahir : auth.user.tanggalLahir,
+            avatar: avatar ? media[0].url : auth.user.avatar,
           },
-        });
+        },
+      });
 
       dispatch({
         type: GLOBALTYPES.ALERT,
-        payload: {
-          success: res.data.msg,
-        },
+        payload: {success: res.data.msg},
       });
     } catch (err) {
       dispatch({
-        payload: {
-          error: err.response.data.msg,
-        },
+        type: GLOBALTYPES.ALERT,
+        payload: {error: err.respone.data.msg},
       });
-      // console.log(err);
+      console.log(err.respone.data);
     }
   };

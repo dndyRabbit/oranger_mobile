@@ -41,7 +41,6 @@ const Register = ({navigation}) => {
           width: '100%',
           alignItems: 'center',
           height: 200,
-          backgroundColor: 'blue',
         }}>
         <Text style={{...FONTS.largeTitle}}>Register</Text>
       </View>

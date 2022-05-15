@@ -1,6 +1,16 @@
 import React from 'react';
 import {createStackNavigator} from '@react-navigation/stack';
-import {Home, Profile} from '../screens';
+import {
+  Home,
+  Profile,
+  Notify,
+  EditProfile,
+  About,
+  MyRute,
+  Absent,
+  Report,
+  Permission,
+} from '../screens';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {SIZES} from '../constants';
@@ -41,10 +51,10 @@ export const BottomTab = () => {
         options={{
           tabBarIcon: ({focused}) => (
             <Icon
-              name="home"
-              size={30}
-              color={focused ? '#fff' : '#6E9677'}
-              style={{marginTop: focused ? -5 : 0, marginLeft: -25}}
+              name="home-variant-outline"
+              size={25}
+              color={focused ? '#F36C1D' : '#6E9677'}
+              style={{marginTop: focused ? -5 : 5}}
             />
           ),
           //   tabBarButton: props => <TabBarCustomButton {...props} />,
@@ -52,11 +62,36 @@ export const BottomTab = () => {
             <Text
               style={{
                 fontSize: 10,
-                color: focused ? '#fff' : 'transparent',
-                position: 'absolute',
-                right: -4,
+                color: focused ? '#F36C1D' : 'transparent',
+                marginBottom: focused ? 5 : 0,
               }}>
               Home
+            </Text>
+          ),
+        }}
+      />
+
+      <BottomStack.Screen
+        name="Notify"
+        component={Notify}
+        options={{
+          tabBarIcon: ({focused}) => (
+            <Icon
+              name="bell-outline"
+              size={25}
+              color={focused ? '#F36C1D' : '#6E9677'}
+              style={{marginTop: focused ? -5 : 5}}
+            />
+          ),
+          //   tabBarButton: props => <TabBarCustomButton {...props} />,
+          tabBarLabel: ({focused}) => (
+            <Text
+              style={{
+                fontSize: 10,
+                color: focused ? '#F36C1D' : 'transparent',
+                marginBottom: focused ? 5 : 0,
+              }}>
+              Notify
             </Text>
           ),
         }}
@@ -69,12 +104,9 @@ export const BottomTab = () => {
           tabBarIcon: ({focused}) => (
             <Icon
               name="account-outline"
-              size={30}
-              color={focused ? '#fff' : '#6E9677'}
-              style={{
-                marginTop: focused ? -5 : 0,
-                marginLeft: focused ? -45 : -35,
-              }}
+              size={25}
+              color={focused ? '#F36C1D' : '#6E9677'}
+              style={{marginTop: focused ? -5 : 5}}
             />
           ),
           //   tabBarButton: props => <TabBarCustomButton {...props} />,
@@ -82,9 +114,8 @@ export const BottomTab = () => {
             <Text
               style={{
                 fontSize: 10,
-                color: focused ? '#fff' : 'transparent',
-                position: 'absolute',
-                right: 5,
+                color: focused ? '#F36C1D' : 'transparent',
+                marginBottom: focused ? 5 : 0,
               }}>
               Profile
             </Text>
@@ -99,7 +130,12 @@ const AppStack = () => {
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
       <Stack.Screen name="App" component={BottomTab} />
-      {/* <Stack.Screen name="EditProfile" component={EditProfile} /> */}
+      <Stack.Screen name="EditProfile" component={EditProfile} />
+      <Stack.Screen name="About" component={About} />
+      <Stack.Screen name="MyRute" component={MyRute} />
+      <Stack.Screen name="Absent" component={Absent} />
+      <Stack.Screen name="Report" component={Report} />
+      <Stack.Screen name="Permission" component={Permission} />
     </Stack.Navigator>
   );
 };

@@ -25,25 +25,16 @@ const Register2 = ({navigation, route}) => {
   const data = route.params;
 
   const initialState = {
-    namaLengkap: '',
-    noKTP: '',
-    jenisKelamin: '',
-    alamatLengkap: '',
-    tanggalLahir: new Date(),
-    noHandphone: '',
-    role: 'petugas',
-    kelurahan: 'cipulir',
+    fullName: '',
+    ktp: '',
+    gender: '',
+    address: '',
+    birthday: new Date(),
+    handphone: '',
   };
   const [newData, setNewData] = useState(initialState);
   const [open, setOpen] = useState(false);
-  const {
-    namaLengkap,
-    noKTP,
-    jenisKelamin,
-    alamatLengkap,
-    tanggalLahir,
-    noHandphone,
-  } = newData;
+  const {fullName, ktp, gender, address, birthday, handphone} = newData;
 
   const {email, password} = data.userData;
 
@@ -57,7 +48,7 @@ const Register2 = ({navigation, route}) => {
       email,
       password,
     };
-    console.log(alert);
+    console.log(value);
     const check = valid2(newData);
     if (check.errLength > 0)
       return dispatch({type: GLOBALTYPES.ALERT, payload: check.errMsg});
@@ -83,8 +74,8 @@ const Register2 = ({navigation, route}) => {
             Nama Lengkap
           </Text>
           <TextInput
-            value={namaLengkap}
-            onChangeText={text => setNewData({...newData, namaLengkap: text})}
+            value={fullName}
+            onChangeText={text => setNewData({...newData, fullName: text})}
             placeholder="Nama Lengkap..."
             placeholderTextColor={`${COLORS.primary}88`}
             style={{
@@ -96,7 +87,7 @@ const Register2 = ({navigation, route}) => {
               color: '#000',
             }}
           />
-          {alert?.namaLengkap && (
+          {alert?.fullName && (
             <Text
               style={{
                 color: '#ff0000',
@@ -104,7 +95,7 @@ const Register2 = ({navigation, route}) => {
 
                 textAlign: 'right',
               }}>
-              *{alert.namaLengkap}
+              *{alert.fullName}
             </Text>
           )}
         </View>
@@ -123,8 +114,8 @@ const Register2 = ({navigation, route}) => {
           }}>
           <Text style={{fontSize: 12, color: COLORS.primary}}>No KTP</Text>
           <TextInput
-            value={noKTP}
-            onChangeText={text => setNewData({...newData, noKTP: text})}
+            value={ktp}
+            onChangeText={text => setNewData({...newData, ktp: text})}
             placeholder="No KTP..."
             placeholderTextColor={`${COLORS.primary}88`}
             maxLength={16}
@@ -138,7 +129,7 @@ const Register2 = ({navigation, route}) => {
               color: '#000',
             }}
           />
-          {alert?.noKTP && (
+          {alert?.ktp && (
             <Text
               style={{
                 color: '#ff0000',
@@ -146,7 +137,7 @@ const Register2 = ({navigation, route}) => {
 
                 textAlign: 'right',
               }}>
-              *{alert.noKTP}
+              *{alert.ktp}
             </Text>
           )}
         </View>
@@ -155,13 +146,13 @@ const Register2 = ({navigation, route}) => {
           Pilih Jenis kelamin
         </Text>
         <Picker
-          selectedValue={jenisKelamin}
+          selectedValue={gender}
           dropdownIconColor={COLORS.primary}
           style={{
             color: COLORS.primary,
           }}
           onValueChange={(itemValue, itemIndex) =>
-            setNewData({...newData, jenisKelamin: itemValue})
+            setNewData({...newData, gender: itemValue})
           }>
           <Picker.Item
             style={{fontSize: 14}}
@@ -180,7 +171,7 @@ const Register2 = ({navigation, route}) => {
           />
         </Picker>
         <View style={{marginBottom: 10}}>
-          {alert?.jenisKelamin && (
+          {alert?.gender && (
             <Text
               style={{
                 color: '#ff0000',
@@ -188,7 +179,7 @@ const Register2 = ({navigation, route}) => {
 
                 textAlign: 'right',
               }}>
-              *{alert.jenisKelamin}
+              *{alert.gender}
             </Text>
           )}
         </View>
@@ -201,8 +192,8 @@ const Register2 = ({navigation, route}) => {
             Alamat Lengkap
           </Text>
           <TextInput
-            value={alamatLengkap}
-            onChangeText={text => setNewData({...newData, alamatLengkap: text})}
+            value={address}
+            onChangeText={text => setNewData({...newData, address: text})}
             placeholder="Alamat Lengkap..."
             placeholderTextColor={`${COLORS.primary}88`}
             style={{
@@ -216,14 +207,14 @@ const Register2 = ({navigation, route}) => {
           />
         </View>
         <View style={{marginBottom: 10}}>
-          {alert?.alamatLengkap && (
+          {alert?.address && (
             <Text
               style={{
                 color: '#ff0000',
                 fontSize: 10,
                 textAlign: 'right',
               }}>
-              *{alert.alamatLengkap}
+              *{alert.address}
             </Text>
           )}
         </View>
@@ -242,7 +233,7 @@ const Register2 = ({navigation, route}) => {
           }}>
           <Icon name="calendar-range" size={20} color={COLORS.primary} />
           <Text style={{fontSize: 12, color: COLORS.primary}}>
-            {format(new Date(tanggalLahir), 'yyyy-MM-dd')}
+            {format(new Date(birthday), 'yyyy-MM-dd')}
           </Text>
         </TouchableOpacity>
         <DatePicker
@@ -250,26 +241,26 @@ const Register2 = ({navigation, route}) => {
           modal
           mode="date"
           open={open}
-          date={tanggalLahir}
+          date={birthday}
           textColor="#fff"
           onConfirm={date => {
             setOpen(false);
-            setNewData({...newData, tanggalLahir: date});
-            console.log(tanggalLahir);
+            setNewData({...newData, birthday: date});
+            console.log(date);
           }}
           onCancel={() => {
             setOpen(false);
           }}
         />
         <View style={{marginBottom: 10}}>
-          {alert?.tanggalLahir && (
+          {alert?.birthday && (
             <Text
               style={{
                 color: '#ff0000',
                 fontSize: 10,
                 textAlign: 'right',
               }}>
-              *{alert.tanggalLahir}
+              *{alert.birthday}
             </Text>
           )}
         </View>
@@ -282,8 +273,8 @@ const Register2 = ({navigation, route}) => {
             No. Handphone
           </Text>
           <TextInput
-            value={noHandphone}
-            onChangeText={text => setNewData({...newData, noHandphone: text})}
+            value={handphone}
+            onChangeText={text => setNewData({...newData, handphone: text})}
             placeholder="No Handphone..."
             placeholderTextColor={`${COLORS.primary}88`}
             keyboardType="number-pad"
@@ -299,14 +290,14 @@ const Register2 = ({navigation, route}) => {
           />
         </View>
         <View style={{marginBottom: 10}}>
-          {alert?.noHandphone && (
+          {alert?.handphone && (
             <Text
               style={{
                 color: '#ff0000',
                 fontSize: 10,
                 textAlign: 'right',
               }}>
-              *{alert.noHandphone}
+              *{alert.handphone}
             </Text>
           )}
         </View>

@@ -20,19 +20,14 @@ const Login = ({navigation}) => {
     password: '',
   });
   const {email, password} = userData;
-
   const [toggle, setToggle] = useState(true);
+
+  const {alert} = useSelector(state => state);
 
   const dispatch = useDispatch();
 
   const handleToggle = () => {
-    console.log(toggle);
     setToggle(prev => (prev === false ? true : false));
-  };
-
-  const loginUser = () => {
-    dispatch(login(userData));
-    // console.log(auth);
   };
 
   const RenderHeader = () => {
@@ -42,7 +37,6 @@ const Login = ({navigation}) => {
           width: '100%',
           alignItems: 'center',
           height: 200,
-          backgroundColor: 'blue',
         }}>
         <Text style={{...FONTS.largeTitle}}>Login</Text>
       </View>
@@ -113,7 +107,7 @@ const Login = ({navigation}) => {
         </View>
 
         <TouchableOpacity
-          onPress={() => loginUser()}
+          onPress={() => dispatch(login(userData))}
           style={{
             width: '80%',
             marginTop: 20,
