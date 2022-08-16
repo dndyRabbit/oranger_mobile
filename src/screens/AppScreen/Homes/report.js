@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -20,8 +20,9 @@ import {format} from 'date-fns';
 import ImagePicker from 'react-native-image-crop-picker';
 import {checkImage} from '../../../utils/imageUpload';
 
-import {GLOBALTYPES} from '../../../redux/actions/globalTypes';
-import {postReport} from '../../../redux/actions/reportAction';
+import Toast from 'react-native-toast-message';
+import {getReport, postReport} from '../../../redux/actions/reportAction';
+import {getRuteLocation} from '../../../redux/actions/locationAction';
 
 const Report = ({navigation, route}) => {
   const {label} = route.params;
@@ -29,22 +30,41 @@ const Report = ({navigation, route}) => {
   const dispatch = useDispatch();
 
   const {location, alert, auth, report} = useSelector(state => state);
+  const [isExist, setIsExist] = useState(false);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [photo, setPhoto] = useState({
-    before: '',
-    progress: '',
-    after: '',
+    before: null,
+    progress: null,
+    after: null,
   });
   const [description, setDescription] = useState('');
+  const [rtrw, setRtrw] = useState('');
+  const [alamat, setAlamat] = useState('');
 
-  if (report.report) {
-    console.log('Ada');
-  } else {
-    console.log('Tidak ada');
-  }
+  const userReport = useCallback(getReport({auth, setLoading}), []);
+  const userLocation = useCallback(getRuteLocation({auth}), []);
 
-  console.log(alert);
-  console.log(report);
+  useEffect(() => {
+    if (
+      location.rute == undefined ||
+      location.rute == null ||
+      location.rute.length < 1
+    ) {
+      dispatch(userLocation);
+    }
+    if (
+      report.report == undefined ||
+      report.report == null ||
+      report.report.length < 1
+    ) {
+      dispatch(userReport);
+    }
+
+    console.log(report.report);
+  }, []);
+
   const today = format(new Date(new Date()), 'yyyy-MM-dd');
 
   const handleChangeBeforePhoto = () => {
@@ -57,11 +77,7 @@ const Report = ({navigation, route}) => {
       .then(image => {
         const err = checkImage(image);
 
-        if (err)
-          return dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: {error: err},
-          });
+        if (err) return setError(err);
 
         setPhoto({
           ...photo,
@@ -78,17 +94,14 @@ const Report = ({navigation, route}) => {
   const handleChangeProgressPhoto = () => {
     ImagePicker.openPicker({
       width: 600,
-      height: 300,
+      height: 500,
       compressImageQuality: 0.5,
+      cropping: true,
     })
       .then(image => {
         const err = checkImage(image);
 
-        if (err)
-          return dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: {error: err},
-          });
+        if (err) return setError(err);
 
         setPhoto({
           ...photo,
@@ -105,24 +118,21 @@ const Report = ({navigation, route}) => {
   const handleChangeAfterPhoto = () => {
     ImagePicker.openPicker({
       width: 600,
-      height: 300,
+      height: 500,
       compressImageQuality: 0.5,
+      cropping: true,
     })
       .then(image => {
         const err = checkImage(image);
-        console.log(err);
-        if (err)
-          return dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: {error: err},
-          });
+
+        if (err) return setError(err);
 
         setPhoto({
           ...photo,
           after: {
             uri: image.path,
             type: image.mime,
-            name: `after.${image.path.split('.')[1]}`,
+            name: `before.${image.path.split('.')[1]}`,
           },
         });
       })
@@ -130,32 +140,47 @@ const Report = ({navigation, route}) => {
   };
 
   const handleSubmit = () => {
-    console.log({
-      auth,
-      role: location?.rute?.[0].role,
-      userId: auth.user._id,
-      before: photo.before,
-      progress: photo.progress,
-      after: photo.after,
-      date: today,
-      wilayah: location?.rute?.[0].wilayahId,
-      description: description,
-    });
-    dispatch(
-      postReport({
-        auth,
-        role: location?.rute?.[0].role,
-        userId: auth.user._id,
-        before: photo.before,
-        progress: photo.progress,
-        after: photo.after,
-        date: today,
-        wilayah: location?.rute?.[0].wilayahId,
-        description: description,
-        setPhoto,
-        setDescription,
-      }),
-    );
+    if (
+      location.rute == undefined ||
+      location.rute == null ||
+      location.rute.length < 1
+    ) {
+      return Toast.show({
+        type: 'info',
+        text1: 'Mohon refresh halaman ini.',
+      });
+    }
+    if (
+      photo.before &&
+      photo.progress &&
+      photo.after &&
+      description &&
+      alamat &&
+      rtrw
+    ) {
+      dispatch(
+        postReport({
+          auth,
+          role: location?.rute?.role,
+          userId: auth.user._id,
+          before: photo.before,
+          progress: photo.progress,
+          after: photo.after,
+          date: today,
+          description: description,
+          rtrw: rtrw,
+          alamat: alamat,
+          setPhoto,
+          setDescription,
+          setLoading,
+        }),
+      );
+    } else {
+      Toast.show({
+        type: 'info',
+        text1: 'Mohon semua data di isi.',
+      });
+    }
   };
 
   const renderInput = () => {
@@ -269,9 +294,41 @@ const Report = ({navigation, route}) => {
         </TouchableOpacity>
 
         <TextInput
-          placeholder={'Deskripsi pekerjaan.....'}
+          placeholder={'Deskripsi pekerjaan...'}
           onChangeText={text => setDescription(text)}
           value={description}
+          placeholderTextColor={`${COLORS.primary}88`}
+          style={{
+            borderWidth: 1,
+            borderColor: COLORS.primary,
+            width: '100%',
+            paddingVertical: 5,
+            fontSize: 14,
+            color: '#000',
+            marginTop: 20,
+            borderRadius: 5,
+          }}
+        />
+        <TextInput
+          placeholder={'Alamat...'}
+          onChangeText={text => setAlamat(text)}
+          value={alamat}
+          placeholderTextColor={`${COLORS.primary}88`}
+          style={{
+            borderWidth: 1,
+            borderColor: COLORS.primary,
+            width: '100%',
+            paddingVertical: 5,
+            fontSize: 14,
+            color: '#000',
+            marginTop: 20,
+            borderRadius: 5,
+          }}
+        />
+        <TextInput
+          placeholder={'RT/RW...'}
+          onChangeText={text => setRtrw(text)}
+          value={rtrw}
           placeholderTextColor={`${COLORS.primary}88`}
           style={{
             borderWidth: 1,
@@ -287,17 +344,17 @@ const Report = ({navigation, route}) => {
 
         <TouchableOpacity
           onPress={() => handleSubmit()}
-          disabled={alert.loading || report.report ? true : false}
+          disabled={loading ? true : false}
           style={{
             marginVertical: 20,
             width: '100%',
             height: 40,
             borderRadius: 10 / 2,
-            backgroundColor: report.report ? '#d1d1d1' : COLORS.primary,
+            backgroundColor: loading ? 'grey' : COLORS.primary,
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          {alert.loading ? (
+          {loading ? (
             <ActivityIndicator size="small" color="#0000ff" />
           ) : (
             <Text
@@ -306,10 +363,39 @@ const Report = ({navigation, route}) => {
                 color: '#fff',
                 fontWeight: 'bold',
               }}>
-              {report.report ? 'Sudah melakukan report' : 'Submit'}
+              Submit
             </Text>
           )}
         </TouchableOpacity>
+      </View>
+    );
+  };
+
+  const ReportingDoneView = () => {
+    return (
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <Text
+          style={[
+            {...FONTS.h3},
+            {
+              fontSize: 14,
+              fontWeight: 'bold',
+              color: 'grey',
+            },
+          ]}>
+          ANDA SUDAH MELAKUKAN REPORTING PEKERJAAN
+        </Text>
+        <Text
+          style={[
+            {...FONTS.h3},
+            {
+              fontSize: 14,
+              fontWeight: 'bold',
+              color: 'grey',
+            },
+          ]}>
+          PADA TANGGAL {format(new Date(), 'dd/MM/yyyy')}
+        </Text>
       </View>
     );
   };
@@ -319,7 +405,20 @@ const Report = ({navigation, route}) => {
       <ScrollView>
         <View style={{flex: 1, padding: 20}}>
           <RenderHeader txt={label} back={true} navigation={navigation} />
-          {renderInput()}
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <ActivityIndicator size={'large'} color={COLORS.primary} />
+            </View>
+          ) : report?.report?.hasOwnProperty('role') ? (
+            <ReportingDoneView />
+          ) : (
+            renderInput()
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

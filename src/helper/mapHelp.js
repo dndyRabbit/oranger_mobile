@@ -7,11 +7,9 @@ export const getMyCurrentLocation = () =>
   new Promise((resolve, reject) => {
     Geolocation.getCurrentPosition(
       position => {
-        // alert(JSON.stringify(position));
-        console.log(position);
         const coords = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
+          latitude: position?.coords?.latitude,
+          longitude: position?.coords?.longitude,
           heading: position?.coords?.heading,
         };
         resolve(coords);

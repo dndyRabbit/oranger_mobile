@@ -1,4 +1,5 @@
 import {combineReducers} from 'redux';
+
 import auth from './authReducer';
 import alert from './alertReducer';
 import location from './locationReducer';

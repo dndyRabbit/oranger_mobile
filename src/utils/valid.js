@@ -14,7 +14,7 @@ export const valid = ({email, password, password_confirmation}) => {
   }
 
   if (password !== password_confirmation) {
-    err.cf_password = 'Konfirmasi password tidak sama dengan password anda.';
+    err.cf_password = 'Konfirmasi password tidak sama.';
   }
 
   return {

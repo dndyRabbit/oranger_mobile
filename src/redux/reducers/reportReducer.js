@@ -1,3 +1,4 @@
+import {GLOBALTYPES} from '../actions/globalTypes';
 import {REPORT_TYPES} from '../actions/reportAction';
 
 const initialState = {
@@ -14,6 +15,8 @@ const reportReducer = (state = initialState, action) => {
       return {
         report: action.payload.report,
       };
+    case GLOBALTYPES.RESET_TO_INITIAL_STATE:
+      return initialState;
     default:
       return state;
   }

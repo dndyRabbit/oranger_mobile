@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   TextInput,
   Button,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import {COLORS, FONTS, images} from '../../../constants';
 
@@ -27,6 +28,7 @@ import {format} from 'date-fns';
 import moment from 'moment';
 import ImagePicker from 'react-native-image-crop-picker';
 import {useDispatch, useSelector} from 'react-redux';
+import Toast from 'react-native-toast-message';
 
 import Modal, {
   ModalTitle,
@@ -35,7 +37,12 @@ import Modal, {
 } from 'react-native-modals';
 import {GLOBALTYPES} from '../../../redux/actions/globalTypes';
 import {checkImage} from '../../../utils/imageUpload';
-import {postUserPermission} from '../../../redux/actions/permissionAction';
+import {
+  getUserPermission,
+  getUserPermissionIsApproved,
+  postUserPermission,
+} from '../../../redux/actions/permissionAction';
+import {getRuteLocation} from '../../../redux/actions/locationAction';
 
 const Permission = ({navigation, route}) => {
   const {label} = route.params;
@@ -50,20 +57,71 @@ const Permission = ({navigation, route}) => {
     endDate: null,
     displayedDate: moment(),
   });
-  const today = format(new Date(new Date()), 'yyyy-MM-dd');
+  const [loading, setLoading] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+
+  const today = format(new Date(), 'yyyy-MM-dd');
 
   const dispatch = useDispatch();
 
-  const {location, alert, auth} = useSelector(state => state);
+  const {location, auth, permission, permissionApproved} = useSelector(
+    state => state,
+  );
 
   const layout = useWindowDimensions();
 
   const [index, setIndex] = useState(0);
   const [scaleAnimationModal, setScaleAnimationModal] = useState(false);
 
+  const userPermission = useCallback(
+    getUserPermission({auth, userId: auth.user._id}),
+    [],
+  );
+  const userPermissionIsApproved = useCallback(
+    getUserPermissionIsApproved({auth, userId: auth.user._id}),
+    [],
+  );
+  const userLocation = useCallback(getRuteLocation({auth}), []);
+
+  const wait = timeout => {
+    return new Promise(resolve => setTimeout(resolve, timeout));
+  };
+
+  useEffect(() => {
+    if (
+      location.rute == undefined ||
+      location.rute == null ||
+      location.rute.length < 1
+    ) {
+      dispatch(userLocation);
+    }
+    if (
+      permission.permission == undefined ||
+      permission.permission == null ||
+      permission.permission.length < 1
+    ) {
+      dispatch(userPermission);
+    }
+    if (
+      permissionApproved.permissionApproved == undefined ||
+      permissionApproved.permissionApproved == null ||
+      permissionApproved.permissionApproved.length < 1
+    ) {
+      dispatch(userPermissionIsApproved);
+    }
+
+    console.log(permission, 'THIS IS PERMISSION');
+    console.log(permissionApproved, 'THIS IS PERMISSION APRROVED');
+  }, []);
+
+  const refetchingDatas = useCallback(() => {
+    setRefresh(true);
+    wait(4000).then(() => setRefresh(false));
+  }, []);
+
   const [routes] = useState([
     {key: 'submitted', title: 'Pengajuan'},
-    {key: 'approved', title: 'Disetujui'},
+    {key: 'approved', title: 'Riwayat Pengajuan'},
   ]);
 
   const renderScene = SceneMap({
@@ -101,8 +159,19 @@ const Permission = ({navigation, route}) => {
   };
 
   const handleSubmitPermission = async () => {
+    if (
+      state.type == '' ||
+      state.description == '' ||
+      date.startDate == null ||
+      date.endDate == null
+    ) {
+      return Toast.show({
+        type: 'info',
+        text1: 'Lengkapi semua data perizinan.',
+      });
+    }
     console.log({
-      role: location?.rute?.[0]?.role,
+      role: location?.rute?.role,
       userId: auth.user._id,
       type: state.type,
       evidence: state.evidence,
@@ -114,7 +183,7 @@ const Permission = ({navigation, route}) => {
     dispatch(
       postUserPermission({
         auth,
-        role: location?.rute?.[0]?.role,
+        role: location?.rute?.role,
         userId: auth.user._id,
         type: state.type,
         evidence: state.evidence,
@@ -124,6 +193,7 @@ const Permission = ({navigation, route}) => {
         endDate: date.endDate._d,
         setScaleAnimationModal,
         setState,
+        setLoading,
       }),
     );
   };
@@ -275,7 +345,14 @@ const Permission = ({navigation, route}) => {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={refresh}
+          onRefresh={() => refetchingDatas()}
+        />
+      }>
       <RenderHeader txt={label} back={true} navigation={navigation} />
       <RenderSubmitButton />
       <TabView
@@ -298,6 +375,7 @@ const Permission = ({navigation, route}) => {
         transitionStyle="curl"
         lazy
         renderTabBar={renderTabBar}
+        swipeEnabled
       />
 
       <Modal
@@ -336,14 +414,15 @@ const Permission = ({navigation, route}) => {
             justifyContent: 'space-between',
           }}>
           {renderInput()}
-          {alert.loading ? (
-            <ActivityIndicator size="large" color={COLORS.primary} />
+
+          {loading ? (
+            <ActivityIndicator size="small" color="#0000ff" />
           ) : (
             <Button title="Submit Perizinan" onPress={handleSubmitPermission} />
           )}
         </ScrollView>
       </Modal>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -352,6 +431,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20,
+  },
+  scrollContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    zIndex: -100,
   },
 });
 

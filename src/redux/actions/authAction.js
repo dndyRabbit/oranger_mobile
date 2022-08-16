@@ -3,13 +3,15 @@ import {getDataAPI, postDataAPI} from '../../utils/fetchData';
 import valid from '../../utils/valid';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Toast from 'react-native-toast-message';
 
-export const login = data => async dispatch => {
+export const login = (data, setLoading) => async dispatch => {
   try {
-    dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-    console.log(data);
-
+    setLoading(true);
+    console.log('LOADING......', data);
     const res = await postDataAPI('login', data);
+
+    console.log('BERHASIL LOGIN');
     dispatch({
       type: GLOBALTYPES.AUTH,
       payload: {
@@ -19,7 +21,7 @@ export const login = data => async dispatch => {
       },
     });
 
-    console.log(res.msg);
+    console.log('GA BERHASIL NERIMA DATA');
 
     await EncryptedStorage.setItem('accessToken', res.data.access_token);
     await EncryptedStorage.setItem(
@@ -30,27 +32,22 @@ export const login = data => async dispatch => {
       }),
     );
 
-    // await EncryptedStorage.removeItem('refreshToken');
-
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: {
-        success: res.data.msg,
-      },
+    console.log(res.data.user, 'THIS IS USER DATAS');
+    setLoading(false);
+    Toast.show({
+      type: 'success',
+      text1: 'Login Success.',
     });
   } catch (err) {
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: {
-        error: err.response.data.msg,
-      },
+    setLoading(false);
+    Toast.show({
+      type: 'error',
+      text1: err.response.data.msg,
     });
   }
 };
 
 export const refreshToken = () => async dispatch => {
-  dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-
   try {
     const session = await EncryptedStorage.getItem('refreshToken');
     if (!session)
@@ -59,7 +56,6 @@ export const refreshToken = () => async dispatch => {
         payload: {error: 'Theres no session please login again!'},
       });
     const obj = JSON.parse(session);
-    console.log(obj);
     const res = await postDataAPI(`refresh_token_mobile`, {
       rf_token: obj.rf_token,
     });
@@ -71,40 +67,30 @@ export const refreshToken = () => async dispatch => {
         user: res.data.user,
       },
     });
-    dispatch({type: GLOBALTYPES.ALERT, payload: {}});
   } catch (err) {
-    console.log(err);
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: {error: err.response.data.msg},
+    Toast.show({
+      type: 'error',
+      text1: err.response.data.msg,
     });
   }
 };
 
-export const register = data => async dispatch => {
+export const register = (data, navigation, setLoading) => async dispatch => {
   try {
-    dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-
+    setLoading(true);
     const res = await postDataAPI('register', data);
-    dispatch({
-      type: GLOBALTYPES.AUTH,
-      payload: {
-        token: res.data.access_token,
-        user: res.data.user,
-      },
+    navigation.replace('Login');
+    Toast.show({
+      type: 'success',
+      text1: 'Registrasi Akun Berhasil.',
+      text2: 'Silahkan hubungi admin untuk verifikasi akun.',
     });
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: {
-        success: res.data.msg,
-      },
-    });
+    setLoading(false);
   } catch (err) {
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: {
-        error: err.response.data.msg,
-      },
+    setLoading(false);
+    Toast.show({
+      type: 'error',
+      text1: err.response.data.msg,
     });
   }
 };
@@ -119,16 +105,18 @@ export const logout = () => async dispatch => {
       payload: {},
     });
     dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: {msg: 'Logout success!'},
+      type: GLOBALTYPES.RESET_TO_INITIAL_STATE,
+      payload: {},
     });
     await postDataAPI('logout');
+    Toast.show({
+      type: 'success',
+      text1: 'Logout Akun Berhasil.',
+    });
   } catch (err) {
-    dispatch({
-      type: GLOBALTYPES.ALERT,
-      payload: {
-        error: err.response.data.msg,
-      },
+    Toast.show({
+      type: 'error',
+      text1: err.response.data.msg,
     });
   }
 };

@@ -1,27 +1,31 @@
 import {GLOBALTYPES} from './globalTypes';
 import {patchDataAPI} from '../../utils/fetchData';
 import {imageUpload} from '../../utils/imageUpload';
+import Toast from 'react-native-toast-message';
 
 export const PETUGAS_TYPES = {
   PATCH_PETUGAS_PROFILE: 'PATCH_PETUGAS_PROFILE',
 };
 
 export const updateProfilePetugas =
-  ({newData, auth, avatar}) =>
+  ({newData, auth, avatar, setLoading}) =>
   async dispatch => {
     try {
       let media;
-      const {namaLengkap, noKTP, noHandphone, alamatLengkap, tanggalLahir} =
-        newData;
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
+      const {fullName, ktp, handphone, address, birthday} = newData;
+      setLoading(true);
 
       if (avatar) media = await imageUpload(avatar);
       console.log(newData, media);
 
-      const res = await patchDataAPI(
+      await patchDataAPI(
         `updatePetugas/${auth.user._id}`,
         {
-          ...newData,
+          fullName,
+          ktp,
+          handphone,
+          address,
+          birthday,
           avatar: avatar ? media[0].url : auth.user.avatar,
         },
         auth.token,
@@ -33,27 +37,26 @@ export const updateProfilePetugas =
           ...auth,
           user: {
             ...auth.user,
-            namaLengkap: namaLengkap ? namaLengkap : auth.user.namaLengkap,
-            noKTP: noKTP ? noKTP : auth.user.noKTP,
-            noHandphone: noHandphone ? noHandphone : auth.user.noHandphone,
-            alamatLengkap: alamatLengkap
-              ? alamatLengkap
-              : auth.user.alamatLengkap,
-            tanggalLahir: tanggalLahir ? tanggalLahir : auth.user.tanggalLahir,
+            fullName: fullName ? fullName : auth.user.fullName,
+            ktp: ktp ? ktp : auth.user.ktp,
+            handphone: handphone ? handphone : auth.user.handphone,
+            address: address ? address : auth.user.address,
+            birthday: birthday ? birthday : auth.user.birthday,
             avatar: avatar ? media[0].url : auth.user.avatar,
           },
         },
       });
 
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res.data.msg},
+      setLoading(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Update profile berhasil.',
       });
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
-      console.log(err.respone.data);
     }
   };

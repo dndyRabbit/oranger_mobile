@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {COLORS, SIZES, FONTS, images} from '../../constants';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {valid} from '../../utils/valid';
 import {useDispatch, useSelector} from 'react-redux';
-import {GLOBALTYPES} from '../../redux/actions/globalTypes';
+import Toast from 'react-native-toast-message';
 
 const Register = ({navigation}) => {
   const initialState = {email: '', password: '', password_confirmation: ''};
@@ -22,16 +22,31 @@ const Register = ({navigation}) => {
 
   const {alert} = useSelector(state => state);
 
-  const dispatch = useDispatch();
-
   const nextPage = () => {
     const check = valid(userData);
-    console.log(alert);
-    if (check.errLength > 0)
-      return dispatch({type: GLOBALTYPES.ALERT, payload: check.errMsg});
-
-    navigation.navigate('Register2', {userData});
-    dispatch({type: GLOBALTYPES.ALERT, payload: {}}, console.log(alert));
+    console.log(check.errMsg);
+    if (check.errLength > 0) {
+      if (check.errMsg.email) {
+        Toast.show({
+          type: 'info',
+          text1: check.errMsg.email,
+        });
+      }
+      if (check.errMsg.password) {
+        Toast.show({
+          type: 'info',
+          text1: check.errMsg.password,
+        });
+      }
+      if (check.errMsg.cf_password) {
+        Toast.show({
+          type: 'info',
+          text1: check.errMsg.cf_password,
+        });
+      }
+    } else {
+      navigation.navigate('Register2', {userData});
+    }
   };
 
   const RenderHeader = () => {
@@ -40,8 +55,13 @@ const Register = ({navigation}) => {
         style={{
           width: '100%',
           alignItems: 'center',
-          height: 200,
+          maxHeight: 300,
         }}>
+        <Image
+          source={images.logoOranger}
+          style={{width: 220, maxHeight: 220}}
+          resizeMode="contain"
+        />
         <Text style={{...FONTS.largeTitle}}>Register</Text>
       </View>
     );
@@ -93,7 +113,7 @@ const Register = ({navigation}) => {
           <TextInput
             value={password}
             onChangeText={text => setUserData({...userData, password: text})}
-            // secureTextEntry={toggle}
+            secureTextEntry={true}
             placeholder="Password"
             placeholderTextColor={'#9D9D9D'}
             style={{
@@ -127,7 +147,7 @@ const Register = ({navigation}) => {
             onChangeText={text =>
               setUserData({...userData, password_confirmation: text})
             }
-            // secureTextEntry={toggle}
+            secureTextEntry={true}
             placeholder="Password Konfirmasi"
             placeholderTextColor={'#9D9D9D'}
             style={{
@@ -201,7 +221,7 @@ const Register = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#fff',
   },
 });
 

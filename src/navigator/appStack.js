@@ -3,7 +3,6 @@ import {createStackNavigator} from '@react-navigation/stack';
 import {
   Home,
   Profile,
-  Notify,
   EditProfile,
   About,
   MyRute,
@@ -13,21 +12,12 @@ import {
 } from '../screens';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {SIZES} from '../constants';
 import {StyleSheet, Text} from 'react-native';
+import {FONTS} from '../constants';
 // import {TabBarCustomButton} from '../components/bottomTabBarCustom';
 
 const BottomStack = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
-// export const ProfileStack = () => {
-//   return (
-//     <Stack.Navigator headerMode={false}>
-//       <Stack.Screen name="Verification" component={Verification} />
-//       <Stack.Screen name="Waiting" component={Waiting} />
-//     </Stack.Navigator>
-//   );
-// };
 
 export const BottomTab = () => {
   return (
@@ -60,38 +50,15 @@ export const BottomTab = () => {
           //   tabBarButton: props => <TabBarCustomButton {...props} />,
           tabBarLabel: ({focused}) => (
             <Text
-              style={{
-                fontSize: 10,
-                color: focused ? '#F36C1D' : 'transparent',
-                marginBottom: focused ? 5 : 0,
-              }}>
-              Home
-            </Text>
-          ),
-        }}
-      />
-
-      <BottomStack.Screen
-        name="Notify"
-        component={Notify}
-        options={{
-          tabBarIcon: ({focused}) => (
-            <Icon
-              name="bell-outline"
-              size={25}
-              color={focused ? '#F36C1D' : '#6E9677'}
-              style={{marginTop: focused ? -5 : 5}}
-            />
-          ),
-          //   tabBarButton: props => <TabBarCustomButton {...props} />,
-          tabBarLabel: ({focused}) => (
-            <Text
-              style={{
-                fontSize: 10,
-                color: focused ? '#F36C1D' : 'transparent',
-                marginBottom: focused ? 5 : 0,
-              }}>
-              Notify
+              style={[
+                {...FONTS.h4},
+                {
+                  fontSize: 10,
+                  color: focused ? '#F36C1D' : 'transparent',
+                  marginBottom: focused ? 5 : 0,
+                },
+              ]}>
+              Beranda
             </Text>
           ),
         }}

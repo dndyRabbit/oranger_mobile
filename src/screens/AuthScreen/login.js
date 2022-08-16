@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TextInput,
   Image,
   TouchableOpacity,
-  ToastAndroid,
+  ActivityIndicator,
 } from 'react-native';
 import {COLORS, SIZES, FONTS, images} from '../../constants';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -21,8 +21,10 @@ const Login = ({navigation}) => {
   });
   const {email, password} = userData;
   const [toggle, setToggle] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const {alert} = useSelector(state => state);
+  const {alert, auth} = useSelector(state => state);
+  console.log(auth);
 
   const dispatch = useDispatch();
 
@@ -36,8 +38,14 @@ const Login = ({navigation}) => {
         style={{
           width: '100%',
           alignItems: 'center',
-          height: 200,
+
+          maxHeight: 300,
         }}>
+        <Image
+          source={images.logoOranger}
+          style={{width: 220, maxHeight: 220}}
+          resizeMode="contain"
+        />
         <Text style={{...FONTS.largeTitle}}>Login</Text>
       </View>
     );
@@ -107,7 +115,7 @@ const Login = ({navigation}) => {
         </View>
 
         <TouchableOpacity
-          onPress={() => dispatch(login(userData))}
+          onPress={() => dispatch(login(userData, setLoading))}
           style={{
             width: '80%',
             marginTop: 20,
@@ -140,6 +148,24 @@ const Login = ({navigation}) => {
       </View>
     );
   };
+
+  const RenderLoading = () => {
+    return (
+      <View
+        style={{
+          backgroundColor: '#000',
+          opacity: 0.5,
+          width: '100%',
+          height: '100%',
+          alignItems: 'center',
+          position: 'absolute',
+          justifyContent: 'center',
+          zIndex: 100,
+        }}>
+        <ActivityIndicator size={'large'} color="#000" />
+      </View>
+    );
+  };
   return (
     <SafeAreaView style={styles.container}>
       <View style={{flex: 1, padding: 20, alignItems: 'center'}}>
@@ -147,6 +173,7 @@ const Login = ({navigation}) => {
         {renderLoginInput()}
         <RegisterButton />
       </View>
+      {loading && <RenderLoading />}
     </SafeAreaView>
   );
 };
@@ -154,7 +181,7 @@ const Login = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#fff',
   },
   body: {
     flex: 1,

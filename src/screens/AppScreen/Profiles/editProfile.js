@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import {COLORS, SIZES, FONTS, images} from '../../../constants';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -34,6 +35,7 @@ const EditProfile = ({navigation}) => {
 
   const [newData, setNewData] = useState(initialState);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [avatar, setAvatar] = useState('');
   const {fullName, ktp, handphone, address, birthday} = newData;
 
@@ -67,7 +69,7 @@ const EditProfile = ({navigation}) => {
   const handleSubmit = e => {
     // e.preventDefault();
     console.log(newData, avatar);
-    dispatch(updateProfilePetugas({newData, auth, avatar}));
+    dispatch(updateProfilePetugas({newData, auth, avatar, setLoading}));
   };
 
   const renderInput = () => {
@@ -203,7 +205,9 @@ const EditProfile = ({navigation}) => {
           }}>
           <Icon name="calendar-range" size={20} color={COLORS.primary} />
           <Text style={{fontSize: 12, color: COLORS.primary}}>
-            {format(new Date(auth.user.birthday), 'yyyy-MM-dd')}
+            {birthday
+              ? format(new Date(birthday), 'yyyy-MM-dd')
+              : format(new Date(auth?.user?.birthday), 'yyyy-MM-dd')}
           </Text>
         </TouchableOpacity>
         <DatePicker
@@ -212,10 +216,11 @@ const EditProfile = ({navigation}) => {
           mode="date"
           open={open}
           date={birthday}
-          textColor="#fff"
+          textColor="#000"
           onConfirm={date => {
-            setOpen(false);
+            console.log(date);
             setNewData({...newData, birthday: date});
+            setOpen(false);
           }}
           onCancel={() => {
             setOpen(false);
@@ -262,9 +267,13 @@ const EditProfile = ({navigation}) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <Text style={{fontSize: 14, color: '#fff', fontWeight: 'bold'}}>
-            Update Profile
-          </Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#0000ff" />
+          ) : (
+            <Text style={{fontSize: 14, color: '#fff', fontWeight: 'bold'}}>
+              Update Profile
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     );

@@ -1,16 +1,16 @@
 import {GLOBALTYPES} from './globalTypes';
-import {getDataAPI} from '../../utils/fetchData';
+import {getDataAPI, postDataAPI} from '../../utils/fetchData';
+import Toast from 'react-native-toast-message';
 
 export const LOCATION_TYPES = {
   GET_RUTE: 'GET_RUTE',
 };
 
 export const getRuteLocation =
-  ({auth}) =>
+  ({auth, setLoading}) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-
+      setLoading(true);
       const res = await getDataAPI(
         `getUserRuteByUserId/${auth.user._id}`,
         auth.token,
@@ -18,45 +18,38 @@ export const getRuteLocation =
 
       dispatch({
         type: LOCATION_TYPES.GET_RUTE,
-        payload: {rute: res?.data?.user},
+        payload: {response: res?.data?.data},
       });
-
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res?.data?.msg},
-      });
+      setLoading(false);
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
     }
   };
 
-// export const postUserLocation =
-// ({state}) =>
-// async dispatch => {
-//   try {
-//     dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
+export const postUserLocation =
+  ({auth, liveLoc}) =>
+  async dispatch => {
+    try {
+      const {latLngs} = liveLoc;
 
-//     const res = await post(
-//       `getUserRuteByUserId/${auth.user._id}`,
-//       auth.token,
-//     );
+      const newData = {
+        userId: auth.user._id,
+        latLngs,
+      };
 
-//     dispatch({
-//       type: LOCATION_TYPES.GET_RUTE,
-//       payload: {rute: res?.data?.user},
-//     });
-
-//     dispatch({
-//       type: GLOBALTYPES.ALERT,
-//       payload: {success: res?.data?.msg},
-//     });
-//   } catch (err) {
-//     dispatch({
-//       type: GLOBALTYPES.ALERT,
-//       payload: {error: err.respone.data.msg},
-//     });
-//   }
-// };
+      if (liveLoc) {
+        await postDataAPI(`locationUser`, newData, auth?.token);
+        console.log(newData, 'DATA SENDED TO BACKEND');
+      }
+    } catch (err) {
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
+      });
+      console.log(err.response.data.msg);
+    }
+  };

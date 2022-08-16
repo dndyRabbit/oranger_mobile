@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -20,24 +20,50 @@ import {format} from 'date-fns';
 import ImagePicker from 'react-native-image-crop-picker';
 import {checkImage} from '../../../utils/imageUpload';
 
-import {GLOBALTYPES} from '../../../redux/actions/globalTypes';
-import {patchAbsenIn, patchAbsenOut} from '../../../redux/actions/absenAction';
+import {
+  getAbsenToday,
+  patchAbsenIn,
+  patchAbsenOut,
+} from '../../../redux/actions/absenAction';
 
 const Absent = ({navigation, route}) => {
   const {label} = route.params;
   const [photo, setPhoto] = useState('');
-  const date = format(new Date(new Date()), 'yyyy-MM-dd');
-  const today = new Date();
+  const [photo2, setPhoto2] = useState('');
+  const [error, setError] = useState(null);
+
+  const [loading, setLoading] = useState(false);
+
+  const [dateDatas, setDate] = useState({
+    date: format(new Date(), 'yyyy-MM-dd'),
+    today: new Date(),
+  });
 
   const dispatch = useDispatch();
-
   const {alert, auth, absensi} = useSelector(state => state);
 
-  const absenIn = absensi?.absensi.absenIn;
-  const absenOut = absensi?.absensi.absenOut;
-  const statusAbsen = absensi?.absensi.statusAbsen;
+  const userAbsenToday = useCallback(
+    getAbsenToday({auth, date: dateDatas.date, setLoading}),
+    [],
+  );
 
-  console.log(absensi);
+  const absenIn = absensi?.absensi?.absenIn;
+  const absenOut = absensi?.absensi?.absenOut;
+  const statusAbsen = absensi?.absensi?.statusAbsen;
+
+  useEffect(() => {
+    dispatch(userAbsenToday);
+
+    console.log(absensi.absensi, 'THIS IS ABSENSI DATA');
+  }, []);
+
+  useEffect(() => {
+    setDate({
+      ...dateDatas,
+      today: new Date(),
+    });
+    console.log('JAM SEKARANG');
+  }, [dateDatas.date]);
 
   const handleTakeASelfie = () => {
     ImagePicker.openCamera({
@@ -48,13 +74,29 @@ const Absent = ({navigation, route}) => {
       .then(image => {
         const err = checkImage(image);
 
-        if (err)
-          return dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: {error: err},
-          });
+        if (err) return setError(err);
 
         setPhoto({
+          uri: image.path,
+          type: image.mime,
+          name: `before.${image.path.split('.')[1]}`,
+        });
+      })
+      .catch(err => console.log(err));
+  };
+
+  const handleTakeASelfieOut = () => {
+    ImagePicker.openCamera({
+      width: 400,
+      height: 800,
+      compressImageQuality: 0.5,
+    })
+      .then(image => {
+        const err = checkImage(image);
+
+        if (err) return setError(err);
+
+        setPhoto2({
           uri: image.path,
           type: image.mime,
           name: `before.${image.path.split('.')[1]}`,
@@ -66,23 +108,29 @@ const Absent = ({navigation, route}) => {
   const handleAbsenIn = () => {
     dispatch(
       patchAbsenIn({
-        hour: today.getHours() + ':' + today.getMinutes(),
-        date: date,
+        hour: dateDatas.today.getHours() + ':' + dateDatas.today.getMinutes(),
+        date: dateDatas.date,
         userId: auth?.user?._id,
         auth,
         photo,
         setPhoto,
+        setError,
+        setLoading,
       }),
     );
   };
   const handleAbsenOut = () => {
     dispatch(
       patchAbsenOut({
-        hour: today.getHours() + ':' + today.getMinutes(),
-        date: date,
+        hour: dateDatas.today.getHours() + ':' + dateDatas.today.getMinutes(),
+        date: dateDatas.date,
         userId: auth?.user?._id,
         auth,
         statusAbsen: 'Hadir',
+        photo2,
+        setPhoto2,
+        setError,
+        setLoading,
       }),
     );
   };
@@ -160,7 +208,7 @@ const Absent = ({navigation, route}) => {
           <TouchableOpacity
             onPress={() => handleAbsenIn()}
             activeOpacity={0.5}
-            disabled={alert.loading ? true : false}
+            disabled={loading ? true : false}
             style={{
               backgroundColor: COLORS.primary,
               paddingVertical: 10,
@@ -170,7 +218,7 @@ const Absent = ({navigation, route}) => {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-            {alert.loading ? (
+            {loading ? (
               <ActivityIndicator size="small" color="#0000ff" />
             ) : (
               <Text style={{...FONTS.body3, color: '#fff'}}>Absen Masuk</Text>
@@ -179,26 +227,58 @@ const Absent = ({navigation, route}) => {
         )}
 
         {/* Absen Keluar */}
-        <Text
-          style={{
-            ...FONTS.body3,
-            fontWeight: 'bold',
-            marginBottom: 5,
-            marginTop: 20,
-          }}>
-          Absen Keluar
+        <Text style={{...FONTS.body3, fontWeight: 'bold', marginBottom: 5}}>
+          Selfie untuk Absen Keluar
         </Text>
-        {absenOut ? (
+        {absenOut || !absenIn ? (
           <View>
             <Text style={{...FONTS.body3}}>
-              Sudah melakukan Absen pada jam {absenOut}
+              {absenIn
+                ? `Sudah melakukan Absen pada jam ${absenOut}`
+                : 'Lakukan Absen Masuk Terlebih Dahulu.'}
             </Text>
           </View>
         ) : (
           <TouchableOpacity
-            onPress={() => handleAbsenOut()}
-            disabled={alert.loading ? true : false}
+            onPress={() => handleTakeASelfieOut()}
             activeOpacity={0.5}
+            style={{
+              borderWidth: 1,
+              borderColor: COLORS.primary,
+              width: '100%',
+              height: 310,
+              marginBottom: 10,
+              borderRadius: 5,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Image
+              source={{
+                uri: photo2.uri,
+              }}
+              style={{
+                height: 300,
+                width: '95%',
+                borderRadius: 5,
+              }}
+              resizeMode="cover"
+            />
+            {!photo2.uri && (
+              <Icon
+                name="camera-plus-outline"
+                size={25}
+                color={COLORS.primary}
+                style={{position: 'absolute'}}
+              />
+            )}
+          </TouchableOpacity>
+        )}
+
+        {photo2?.uri && (
+          <TouchableOpacity
+            onPress={() => handleAbsenOut()}
+            activeOpacity={0.5}
+            disabled={loading || !absenIn ? true : false}
             style={{
               backgroundColor: COLORS.primary,
               paddingVertical: 10,
@@ -208,7 +288,7 @@ const Absent = ({navigation, route}) => {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-            {alert.loading ? (
+            {loading ? (
               <ActivityIndicator size="small" color="#0000ff" />
             ) : (
               <Text style={{...FONTS.body3, color: '#fff'}}>Absen Keluar</Text>
@@ -222,9 +302,35 @@ const Absent = ({navigation, route}) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <View style={{flex: 1, padding: 20}}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 20,
+          }}>
           <RenderHeader txt={label} back={true} navigation={navigation} />
-          <RenderBody />
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <ActivityIndicator size={'large'} color={COLORS.primary} />
+            </View>
+          ) : absensi?.absensi?.length == 0 ||
+            absensi?.absensi == undefined ||
+            absensi?.absensi == null ? (
+            <View>
+              <Text>ADMIN BELUM MEMBUAT ABSENSI</Text>
+              <Text>SILAHKAN MENGHUBUNGI ADMIN</Text>
+            </View>
+          ) : (
+            <View style={{flex: 1, padding: 10}}>
+              <RenderBody />
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

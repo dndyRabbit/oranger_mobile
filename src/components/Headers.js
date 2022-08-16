@@ -6,8 +6,6 @@ import {useDispatch} from 'react-redux';
 import {LOCATION_TYPES} from '../redux/actions/locationAction';
 
 const RenderHeader = ({img, txt, back, navigation}) => {
-  const dispatch = useDispatch();
-
   return (
     <View
       style={{
@@ -40,8 +38,8 @@ const RenderHeader = ({img, txt, back, navigation}) => {
       )}
       {img ? (
         <Image
-          source={images.logoTulisan}
-          style={{height: 200}}
+          source={images.logoOranger}
+          style={{height: 180}}
           resizeMode="contain"
         />
       ) : null}

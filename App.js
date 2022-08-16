@@ -3,6 +3,7 @@ import Providers from './src/navigator';
 import DataProvider from './src/redux/store';
 import {LogBox} from 'react-native';
 import {ModalPortal} from 'react-native-modals';
+import Toast from 'react-native-toast-message';
 
 const App = () => {
   LogBox.ignoreLogs([
@@ -16,6 +17,7 @@ const App = () => {
     <DataProvider>
       <Providers />
       <ModalPortal />
+      <Toast />
     </DataProvider>
   );
 };

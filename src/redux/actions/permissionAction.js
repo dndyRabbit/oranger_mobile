@@ -1,6 +1,7 @@
 import {GLOBALTYPES} from './globalTypes';
 import {getDataAPI, patchDataAPI, postDataAPI} from '../../utils/fetchData';
 import {imageUploadReport} from '../../utils/imageUpload';
+import Toast from 'react-native-toast-message';
 
 export const PERMISSION_TYPES = {
   GET_USER_PERMISSION: 'GET_USER_PERMISSION',
@@ -22,24 +23,17 @@ export const postUserPermission =
     endDate,
     setScaleAnimationModal,
     setState,
+    setLoading,
+    setError,
   }) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
+      setLoading(true);
       let media;
 
       if (evidence !== '') {
         media = await imageUploadReport(evidence);
       }
-
-      console.log('gakada gambar');
-
-      if (!media)
-        dispatch({
-          type: GLOBALTYPES.ALERT,
-          payload: {error: 'Tidak ada Media yang harus di input'},
-        });
-      console.log('gakada gambar34343');
 
       const res = await postDataAPI(
         `postPermission`,
@@ -47,7 +41,7 @@ export const postUserPermission =
           role,
           userId,
           type,
-          evidence: evidence ? media?.[0]?.url : '',
+          evidence: media == undefined ? '' : media?.[0]?.url,
           description,
           date,
           startDate,
@@ -55,30 +49,43 @@ export const postUserPermission =
         },
         auth.token,
       );
-      console.log(res.data);
 
       dispatch({
         type: PERMISSION_TYPES.POST_USER_PERMISSION,
-        payload: {permission: res.data.permission},
+        payload: {
+          permission: {
+            role,
+            userId,
+            type,
+            evidence: media == undefined ? '' : media?.[0]?.url,
+            description,
+            date,
+            startDate,
+            endDate,
+            isApproved: false,
+          },
+        },
       });
 
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res.data.msg},
-      });
+      console.log('PAssing the the dispatcj');
+      setLoading(false);
       setScaleAnimationModal(false);
       setState({
         type: '',
         description: '',
         evidence: '',
       });
-    } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      Toast.show({
+        type: 'success',
+        text1: 'Perizinan Berhasil dibuat.',
       });
+    } catch (err) {
+      setLoading(false);
 
-      console.log('error', err.respone.data);
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
+      });
     }
   };
 
@@ -86,23 +93,16 @@ export const getUserPermission =
   ({auth, userId}) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-
       const res = await getDataAPI(`getUserPermission/${userId}`, auth.token);
 
       dispatch({
         type: PERMISSION_TYPES.GET_USER_PERMISSION,
         payload: {permission: res.data.permission},
       });
-
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res.data.msg},
-      });
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
     }
   };
@@ -128,18 +128,18 @@ export const getUserPermissionIsApproved =
         payload: {success: res.data.msg},
       });
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
     }
   };
 
 export const patchUserPermission =
-  ({auth, id, evidence, setPhoto}) =>
+  ({auth, id, evidence, setPhoto, setLoading}) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
+      setLoading(true);
 
       let media = await imageUploadReport(evidence);
 
@@ -160,15 +160,17 @@ export const patchUserPermission =
         payload: {id, evidence: media[0].url},
       });
 
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res.data.msg},
-      });
       setPhoto(null);
+      setLoading(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Gambar berhasil diupload.',
+      });
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
     }
   };

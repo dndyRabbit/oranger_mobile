@@ -2,6 +2,7 @@ import {GLOBALTYPES} from './globalTypes';
 import {getDataAPI, patchDataAPI, postDataAPI} from '../../utils/fetchData';
 import {imageUploadReport} from '../../utils/imageUpload';
 import {format} from 'date-fns';
+import Toast from 'react-native-toast-message';
 
 export const REPORT_TYPES = {
   GET_REPORT: 'GET_REPORT',
@@ -10,11 +11,10 @@ export const REPORT_TYPES = {
 };
 
 export const getReport =
-  ({auth}) =>
+  ({auth, setLoading}) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-
+      setLoading(true);
       const userId = auth.user._id;
       const date = format(new Date(new Date()), 'yyyy-MM-dd');
 
@@ -25,33 +25,44 @@ export const getReport =
         type: REPORT_TYPES.GET_REPORT,
         payload: {report: res.data.report},
       });
-
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res.data.msg},
-      });
+      setLoading(false);
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
     }
   };
 
 export const postReport =
-  ({role, userId, before, progress, after, description, date, wilayah, auth}) =>
+  ({
+    role,
+    userId,
+    before,
+    progress,
+    after,
+    description,
+    date,
+    alamat,
+    rtrw,
+    auth,
+    setLoading,
+    setPhoto,
+    setDescription,
+  }) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-
+      setLoading(true);
       const media1 = await imageUploadReport(before);
       const media2 = await imageUploadReport(progress);
       const media3 = await imageUploadReport(after);
 
-      if (!media1 && !media2 && media3)
-        return dispatch({
-          type: GLOBALTYPES.ALERT,
-          payload: {error: 'Tidak ada Media yang harus di input'},
+      if (!media1 && !media2 && !media3)
+        return Toast.show({
+          type: 'error',
+          text1: 'Tidak ada media.',
+          text2: 'silahkan mencoba lagi.',
         });
 
       console.log('Done upload gambar');
@@ -66,12 +77,11 @@ export const postReport =
           after: media3[0].url,
           description,
           date,
-          wilayah,
+          alamat,
+          rtrw,
         },
         auth.token,
       );
-
-      console.log('Done upload data');
 
       dispatch({
         type: REPORT_TYPES.POST_REPORT,
@@ -80,82 +90,16 @@ export const postReport =
 
       setPhoto({});
       setDescription('');
+      setLoading(false);
 
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res.data.msg},
+      Toast.show({
+        type: 'success',
+        text1: 'Lapor pekerjaan hari ini berhasil.',
       });
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
-      });
-    }
-  };
-
-export const patchReport =
-  ({auth, wilayahId, dateNow, before, after, description}) =>
-  async dispatch => {
-    console.log('before :', before, 'after :', after);
-
-    console.log(
-      'userId :',
-      auth.user._id,
-      'wialyahId: ',
-      wilayahId,
-      'dateNow,: ',
-      dateNow,
-    );
-
-    try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-      const userId = auth.user._id;
-
-      let media;
-      if (after) {
-        media = await imageUploadReport(after);
-      } else if (before) {
-        media = await imageUploadReport(before);
-      } else {
-        return dispatch({
-          type: GLOBALTYPES.ALERT,
-          payload: {error: 'Tidak ada Media yang harus di input'},
-        });
-      }
-
-      if (after) {
-        const res = await patchDataAPI(
-          `updateReport/${userId}/${wilayahId}/${dateNow}`,
-          {
-            after: media[0].url,
-            description,
-          },
-          auth.token,
-        );
-
-        dispatch({
-          type: GLOBALTYPES.ALERT,
-          payload: {success: res.data.msg},
-        });
-      } else {
-        const res = await patchDataAPI(
-          `updateReport/${userId}/${wilayahId}/${dateNow}`,
-          {
-            before: media[0].url,
-            description,
-          },
-          auth.token,
-        );
-
-        dispatch({
-          type: GLOBALTYPES.ALERT,
-          payload: {success: res.data.msg},
-        });
-      }
-    } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
     }
   };

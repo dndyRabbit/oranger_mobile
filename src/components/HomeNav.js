@@ -4,10 +4,10 @@ import {images, FONTS, COLORS} from '../constants';
 
 const Nav = ({handleChangeNav}) => {
   const nav = [
-    {label: 'Rute ku', name: 'MyRute', image: images.logoNav1},
-    {label: 'Attendance', name: 'Absent', image: images.logoNav2},
-    {label: 'Reporting', name: 'Report', image: images.logoNav3},
-    {label: 'Meminta Izin', name: 'Permission', image: images.logoNav4},
+    {label: 'Wilayah Pekerjaan', name: 'MyRute', image: images.logoNav1},
+    {label: 'Absensi Petugas', name: 'Absent', image: images.logoNav2},
+    {label: 'Pelaporan Pekerjaan', name: 'Report', image: images.logoNav3},
+    {label: 'Pengajuan Perizinan', name: 'Permission', image: images.logoNav4},
   ];
 
   const RenderBody = () => {
@@ -61,13 +61,15 @@ const Nav = ({handleChangeNav}) => {
                 }}
               />
               <Text
-                style={{
-                  color: COLORS.primary,
-                  position: 'absolute',
-                  bottom: 10,
-                  fontSize: 14,
-                  fontWeight: '400',
-                }}>
+                style={[
+                  {...FONTS.h4},
+                  {
+                    position: 'absolute',
+                    bottom: 10,
+                    fontSize: 12,
+                    fontWeight: '400',
+                  },
+                ]}>
                 {item.label}
               </Text>
             </TouchableOpacity>
@@ -75,15 +77,6 @@ const Nav = ({handleChangeNav}) => {
         )}
         numColumns={2}
       />
-      // <View
-      //   style={{
-      //     flex: 1,
-      //     flexDirection: 'row',
-      //     justifyContent: 'center',
-      //     alignItems: 'center',
-      //   }}>
-
-      // </View>
     );
   };
 

@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {COLORS, SIZES} from '../../constants';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -20,6 +21,7 @@ import {valid2} from '../../utils/valid';
 import {format} from 'date-fns';
 import {Picker} from '@react-native-picker/picker';
 import DatePicker from 'react-native-date-picker';
+import Toast from 'react-native-toast-message';
 
 const Register2 = ({navigation, route}) => {
   const data = route.params;
@@ -34,6 +36,7 @@ const Register2 = ({navigation, route}) => {
   };
   const [newData, setNewData] = useState(initialState);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const {fullName, ktp, gender, address, birthday, handphone} = newData;
 
   const {email, password} = data.userData;
@@ -50,17 +53,15 @@ const Register2 = ({navigation, route}) => {
     };
     console.log(value);
     const check = valid2(newData);
-    if (check.errLength > 0)
-      return dispatch({type: GLOBALTYPES.ALERT, payload: check.errMsg});
-
-    dispatch({type: GLOBALTYPES.ALERT, payload: {}});
-    dispatch(register(value));
-
-    navigation.replace('Login');
-    Alert.alert(
-      'Registrasi Success',
-      'Silahkan mengkontak Admin untuk menyetujui regristasi pasukan oranye',
-    );
+    if (check.errLength > 0) {
+      Toast.show({
+        type: 'info',
+        text1: "Semua data tidak boleh kosong.",
+      });
+  
+    } else {
+      dispatch(register(value, navigation, setLoading));
+    }
   };
 
   const renderRegisterInput = () => {
@@ -159,16 +160,8 @@ const Register2 = ({navigation, route}) => {
             label="Jenis kelamin..."
             value=""
           />
-          <Picker.Item
-            style={{fontSize: 14}}
-            label="Laki-laki"
-            value="lakiLaki"
-          />
-          <Picker.Item
-            style={{fontSize: 14}}
-            label="Perempuan"
-            value="perempuan"
-          />
+          <Picker.Item style={{fontSize: 14}} label="Laki-laki" value="00" />
+          <Picker.Item style={{fontSize: 14}} label="Perempuan" value="01" />
         </Picker>
         <View style={{marginBottom: 10}}>
           {alert?.gender && (
@@ -242,7 +235,7 @@ const Register2 = ({navigation, route}) => {
           mode="date"
           open={open}
           date={birthday}
-          textColor="#fff"
+          textColor="#000"
           onConfirm={date => {
             setOpen(false);
             setNewData({...newData, birthday: date});
@@ -302,13 +295,7 @@ const Register2 = ({navigation, route}) => {
           )}
         </View>
         {/* ------------------------------------------------------------ */}
-        <View style={{marginBottom: 10}}>
-          {/* {alert.kelurahan && (
-            <Text style={{fontSize: 12, color: '#FFB818'}}>
-              *{alert.kelurahan}
-            </Text>
-          )} */}
-        </View>
+        <View style={{marginBottom: 10}}></View>
         {/* ------------------------------------------------------------ */}
         <TouchableOpacity
           onPress={() => handleSubmitRegister()}
@@ -321,9 +308,13 @@ const Register2 = ({navigation, route}) => {
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <Text style={{fontSize: 14, color: '#fff', fontWeight: 'bold'}}>
-            Register
-          </Text>
+          {loading ? (
+            <ActivityIndicator size="small" color="#0000ff" />
+          ) : (
+            <Text style={{fontSize: 14, color: '#fff', fontWeight: 'bold'}}>
+              Register
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     );

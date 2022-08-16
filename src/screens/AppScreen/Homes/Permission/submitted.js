@@ -1,13 +1,9 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
-  SafeAreaView,
-  StyleSheet,
-  Image,
   TouchableOpacity,
-  Dimensions,
-  useWindowDimensions,
+  ActivityIndicator,
   ScrollView,
 } from 'react-native';
 import {COLORS, FONTS, images} from '../../../../constants';
@@ -23,10 +19,12 @@ import ImagePicker from 'react-native-image-crop-picker';
 const Submitted = () => {
   const dispatch = useDispatch();
   const {auth, permission} = useSelector(state => state);
+  const [loading, setLoading] = useState(false);
 
   const [photo, setPhoto] = useState(null);
 
-  const handleGetEvidence = ({id}) => {
+  const handleGetEvidence = item => {
+    console.log(item._id, 'THIS IS MY ID');
     ImagePicker.openCamera({
       width: 600,
       height: 800,
@@ -35,119 +33,147 @@ const Submitted = () => {
     })
       .then(image => {
         const err = checkImage(image);
-        if (err)
-          return dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: {error: err},
-          });
+        if (err) return console.log(err);
         setPhoto({
           uri: image.path,
           type: image.mime,
           name: `picture.${image.path.split('/')[11]}`,
-          key: id,
+          key: item._id,
         });
       })
       .catch(err => console.log(err));
   };
 
-  const handlePatchEvidence = ({id}) => {
-    console.log(id);
-    dispatch(patchUserPermission({auth, id, evidence: photo, setPhoto}));
+  const handlePatchEvidence = item => {
+    dispatch(
+      patchUserPermission({
+        auth,
+        id: item._id,
+        evidence: photo,
+        setPhoto,
+        setLoading,
+      }),
+    );
   };
+
+  useEffect(() => {
+    console.log(permission?.permission);
+  }, []);
 
   return (
     <View style={{flex: 1, padding: 10}}>
-      {permission?.permission?.map((item, index) => (
-        <View
-          key={index}
-          style={{
-            borderRadius: 5,
-            borderWidth: 1,
-            borderColor: COLORS.primary,
-            marginBottom: 10,
-            padding: 10,
-            justifyContent: 'space-between',
-            flexDirection: 'row',
-          }}>
-          <View>
-            <View style={{flexDirection: 'row'}}>
-              <Text style={{...FONTS.body4}}>Tipe Perizinan: </Text>
-              <Text style={{...FONTS.body4}}>{item.type}</Text>
-            </View>
-            <View style={{flexDirection: 'row', marginBottom: 5}}>
-              <Text style={{...FONTS.body4}}>Alasan: </Text>
-              <Text style={{...FONTS.body4}}>{item.description}</Text>
-            </View>
-            <View style={{marginBottom: 10}}>
-              <Text style={{...FONTS.body4}}>Tanggal: </Text>
+      <ScrollView>
+        {permission?.permission?.map((item, index) => (
+          <View
+            key={index}
+            style={{
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor: COLORS.primary,
+              marginBottom: 10,
+              padding: 10,
+              justifyContent: 'space-between',
+              flexDirection: 'row',
+            }}>
+            <View>
               <View style={{flexDirection: 'row'}}>
+                <Text style={{...FONTS.body4}}>Tipe Perizinan: </Text>
+                <Text style={{...FONTS.body4}}>{item.type}</Text>
+              </View>
+              <View style={{flexDirection: 'row', marginBottom: 5}}>
+                <Text style={{...FONTS.body4}}>Alasan: </Text>
+                <Text style={{...FONTS.body4}}>{item.description}</Text>
+              </View>
+              <View style={{flexDirection: 'row', marginBottom: 5}}>
+                <Text style={{...FONTS.body4}}>Tanggal Pengajuan: </Text>
                 <Text style={{...FONTS.body4}}>
-                  {format(new Date(item.startDate), 'yyyy-MM-dd')}
+                  {item?.date && format(new Date(item?.date), 'yyyy-MM-dd')}
                 </Text>
-                <Text style={{...FONTS.body4, marginHorizontal: 5}}>s/d</Text>
+              </View>
+              <View style={{marginBottom: 10}}>
+                <Text style={{...FONTS.body4}}>Tanggal Izin: </Text>
+                <View style={{flexDirection: 'row'}}>
+                  <Text style={{...FONTS.body4}}>
+                    {item?.startDate &&
+                      format(new Date(item?.startDate), 'yyyy-MM-dd')}
+                  </Text>
+                  <Text style={{...FONTS.body4, marginHorizontal: 5}}>s/d</Text>
+                  <Text style={{...FONTS.body4}}>
+                    {item?.endDate &&
+                      format(new Date(item?.endDate), 'yyyy-MM-dd')}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={{marginBottom: 10}}>
+                <Text style={{...FONTS.body4}}>Bukti foto: </Text>
+                <Text style={{...FONTS.body5, fontStyle: 'italic'}}>
+                  {item.evidence ? (
+                    <Text
+                      style={{
+                        ...FONTS.body5,
+                        fontStyle: 'italic',
+                        color: 'green',
+                      }}>
+                      Gambar sudah ter-upload
+                    </Text>
+                  ) : (
+                    <Text
+                      style={{
+                        ...FONTS.body5,
+                        fontStyle: 'italic',
+                        color: 'red',
+                      }}>
+                      Belum ada gambar, upload terlebih dahulu
+                    </Text>
+                  )}
+                </Text>
+              </View>
+
+              <View>
                 <Text style={{...FONTS.body4}}>
-                  {format(new Date(item.endDate), 'yyyy-MM-dd')}
+                  Status:{' '}
+                  <Text
+                    style={{
+                      ...FONTS.body4,
+
+                      color: 'green',
+                    }}>
+                    {item.isApproved === false && 'Dalam pengajuan'}
+                  </Text>
                 </Text>
               </View>
             </View>
 
-            <View style={{marginBottom: 10}}>
-              <Text style={{...FONTS.body4}}>Bukti foto: </Text>
-              <Text style={{...FONTS.body5, fontStyle: 'italic'}}>
-                {item.evidence ? (
-                  <Text
-                    style={{
-                      ...FONTS.body5,
-                      fontStyle: 'italic',
-                      color: 'green',
-                    }}>
-                    Gambar sudah ter-upload
-                  </Text>
-                ) : (
-                  <Text
-                    style={{...FONTS.body5, fontStyle: 'italic', color: 'red'}}>
-                    Belum ada gambar, upload terlebih dahulu
-                  </Text>
-                )}
-              </Text>
-            </View>
+            <View style={{justifyContent: 'center', alignItems: 'center'}}>
+              {!item.evidence && (
+                <TouchableOpacity onPress={() => handleGetEvidence(item)}>
+                  <Icon name="image-edit" size={25} color={COLORS.primary} />
+                </TouchableOpacity>
+              )}
 
-            <View>
-              <Text style={{...FONTS.body4}}>
-                Status:
-                <Text
-                  style={{...FONTS.body4, fontStyle: 'italic', color: 'green'}}>
-                  {item.isApproved === false && 'Dalam pengajuan'}
-                </Text>
-              </Text>
+              {photo && photo?.key === item._id && (
+                <TouchableOpacity
+                  onPress={() => handlePatchEvidence(item)}
+                  style={{marginTop: 10}}>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#0000ff" />
+                  ) : (
+                    <Text
+                      style={{
+                        ...FONTS.body4,
+                        fontWeight: '900',
+                        color: COLORS.primary,
+                      }}>
+                      Submit
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
             </View>
           </View>
-
-          <View style={{justifyContent: 'center', alignItems: 'center'}}>
-            {!item.evidence && (
-              <TouchableOpacity
-                onPress={() => handleGetEvidence({id: item._id})}>
-                <Icon name="image-edit" size={25} color={COLORS.primary} />
-              </TouchableOpacity>
-            )}
-
-            {photo?.key === item._id && (
-              <TouchableOpacity
-                onPress={() => handlePatchEvidence({id: item._id})}
-                style={{marginTop: 10}}>
-                <Text
-                  style={{
-                    ...FONTS.body4,
-                    fontWeight: '900',
-                    color: COLORS.primary,
-                  }}>
-                  Submit
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-      ))}
+        ))}
+      </ScrollView>
     </View>
   );
 };

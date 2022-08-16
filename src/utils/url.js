@@ -7,4 +7,6 @@ export const REACT_NATIVE_CLOUD_API =
 export const REACT_NATIVE_GOOGLE_MAPS_API =
   'AIzaSyA1MgLuZuyqR_OGY3ob3M52N46TDBRI_9k';
 
-export const REACT_NATIVE_BASE_URL = 'http://31df-182-253-127-141.ngrok.io';
+export const REACT_NATIVE_BASE_URL =
+  'http://3237-2001-448a-40a6-1f23-4598-e391-44eb-827f.ngrok.io';
+export const REACT_NATIVE_PRODUCT_URL = 'https://oranger-backend.herokuapp.com';

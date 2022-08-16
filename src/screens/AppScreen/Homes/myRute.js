@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -9,28 +9,35 @@ import {
   Dimensions,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import {COLORS, FONTS, images} from '../../../constants';
-
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-
 import {useDispatch, useSelector} from 'react-redux';
-
 import RenderHeader from '../../../components/Headers';
+import {getRuteLocation} from '../../../redux/actions/locationAction';
 
 const MyRute = ({navigation, route}) => {
   const dispatch = useDispatch();
+
   const {label} = route.params;
 
-  const {location} = useSelector(state => state);
+  const {location, auth} = useSelector(state => state);
 
-  const myRute = location?.rute?.[0];
+  const [loading, setLoading] = useState(false);
 
-  function Capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  }
+  const userLocation = useCallback(getRuteLocation({auth, setLoading}), []);
 
-  console.log(location);
+  useEffect(() => {
+    if (
+      location.rute == undefined ||
+      location.rute == null ||
+      location.rute.length < 1
+    ) {
+      dispatch(userLocation);
+    }
+    console.log(location.rute);
+  }, []);
 
   const RenderBody = () => {
     return (
@@ -44,7 +51,7 @@ const MyRute = ({navigation, route}) => {
         }}>
         <View style={{flex: 1, flexDirection: 'row'}}>
           <Image
-            source={{uri: myRute?.userId?.avatar}}
+            source={{uri: location?.rute?.userId?.avatar}}
             style={{
               width: 80,
               height: 80,
@@ -55,7 +62,7 @@ const MyRute = ({navigation, route}) => {
           />
           <View style={{flex: 1, justifyContent: 'space-between'}}>
             <Text style={{...FONTS.body3, textTransform: 'capitalize'}}>
-              {myRute?.userId?.fullName}
+              {location?.rute?.userId?.fullName}
             </Text>
             <Text
               style={{
@@ -63,7 +70,7 @@ const MyRute = ({navigation, route}) => {
                 textTransform: 'capitalize',
                 color: 'grey',
               }}>
-              {myRute?.role}
+              {location?.rute?.role}
             </Text>
           </View>
         </View>
@@ -88,18 +95,25 @@ const MyRute = ({navigation, route}) => {
           <View style={{flex: 1, alignItems: 'center', marginBottom: 10}}>
             <Text
               style={{
-                ...FONTS.body4,
+                ...FONTS.h4,
                 textTransform: 'capitalize',
+                marginBottom: 10,
+                color: 'grey',
+                fontWeight: '100',
+                fontSize: 14,
               }}>
-              {myRute?.wilayahId?.wilayahAwal} -{' '}
-              {myRute?.wilayahId?.wilayahAkhir}
+              {location?.rute?.wilayahId?.wilayahAwal} -{' '}
+              {location?.rute?.wilayahId?.wilayahAkhir}
             </Text>
             <Text
               style={{
-                ...FONTS.body4,
+                ...FONTS.h4,
                 textTransform: 'capitalize',
+                color: 'grey',
+                fontWeight: '100',
+                fontSize: 14,
               }}>
-              {myRute?.wilayahId?.alamat}
+              {location?.rute?.wilayahId?.alamat}
             </Text>
           </View>
 
@@ -112,25 +126,29 @@ const MyRute = ({navigation, route}) => {
             }}>
             <Text
               style={{
-                ...FONTS.body4,
+                ...FONTS.h4,
                 textTransform: 'capitalize',
+                color: 'grey',
+                fontWeight: '100',
+                fontSize: 14,
               }}>
-              latitude : {myRute?.wilayahId?.latitude}
+              latitude :
+              {location?.rute?.wilayahId?.latitude ||
+                'Daerah ini tidak memiliki latitude'}
             </Text>
             <Text
               style={{
-                ...FONTS.body4,
+                ...FONTS.h4,
                 textTransform: 'capitalize',
-
                 marginBottom: 10,
+                color: 'grey',
+                fontWeight: '100',
+                fontSize: 14,
               }}>
-              longitude : {myRute?.wilayahId?.latitude}
+              longitude :
+              {location?.rute?.wilayahId?.longitude ||
+                'Daerah ini tidak memiliki latitude'}
             </Text>
-            <TouchableOpacity>
-              <Text style={{...FONTS.body2, color: COLORS.primary}}>
-                Go to Maps
-              </Text>
-            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -142,7 +160,18 @@ const MyRute = ({navigation, route}) => {
       <ScrollView>
         <View style={{flex: 1, padding: 20}}>
           <RenderHeader txt={label} back={true} navigation={navigation} />
-          <RenderBody />
+          {loading ? (
+            <View
+              style={{
+                flex: 1,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}>
+              <ActivityIndicator size={'large'} color={COLORS.primary} />
+            </View>
+          ) : (
+            <RenderBody />
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>

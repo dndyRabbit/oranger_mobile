@@ -1,7 +1,6 @@
-import {GLOBALTYPES} from './globalTypes';
 import {getDataAPI, patchDataAPI} from '../../utils/fetchData';
 import {imageUpload} from '../../utils/imageUpload';
-import {format} from 'date-fns';
+import Toast from 'react-native-toast-message';
 
 export const ABSEN_TYPES = {
   PATCH_ABSEN: 'PATCH_ABSEN',
@@ -11,55 +10,39 @@ export const ABSEN_TYPES = {
 };
 
 export const getAbsenToday =
-  ({auth}) =>
+  ({auth, date, setLoading}) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-      const date = format(new Date(new Date()), 'yyyy-MM-dd');
-
+      setLoading(true);
       const res = await getDataAPI(`/petugas/absen/${date}`, auth.token);
 
       const newData = res?.data?.user?.[0]?.petugasAbsensi;
 
-      const veryNewData = newData.filter(
-        item => item.userId._id === auth.user._id,
+      const veryNewData = newData?.filter(
+        item => item?.userId?._id === auth?.user?._id,
       );
 
       dispatch({
         type: ABSEN_TYPES.GET_ABSEN_TODAY,
-        payload: {user: veryNewData[0]},
+        payload: {user: veryNewData?.[0]},
       });
-
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {},
-      });
+      setLoading(false);
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
-      });
-      console.log(err.respone.data);
+      setLoading(false);
+      console.log(err);
     }
   };
 
 export const patchAbsenIn =
-  ({auth, date, userId, photo, hour, setPhoto}) =>
+  ({auth, date, userId, photo, hour, setPhoto, setError, setLoading}) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-
+      setLoading(true);
       const media = await imageUpload(photo);
 
-      if (!media)
-        return dispatch({
-          type: GLOBALTYPES.ALERT,
-          payload: {error: 'Tidak ada Media yang harus di input'},
-        });
+      if (!media) return setError;
 
-      console.log(media[0].url);
-
-      const res = await patchDataAPI(
+      await patchDataAPI(
         `petugas/updateAbsen/${date}/${userId}`,
         {
           photo: media[0].url,
@@ -68,57 +51,73 @@ export const patchAbsenIn =
         auth.token,
       );
 
-      console.log(res.data.msg);
-
       dispatch({
         type: ABSEN_TYPES.PATCH_ABSEN_IN,
         payload: {absenIn: hour},
       });
       setPhoto('');
-
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res.data.msg},
+      setLoading(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Berhasil melakukan absen masuk',
       });
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
-      console.log(err);
     }
   };
 
 export const patchAbsenOut =
-  ({auth, date, userId, hour, statusAbsen}) =>
+  ({
+    auth,
+    date,
+    userId,
+    hour,
+    statusAbsen,
+    photo2,
+    setPhoto2,
+    setError,
+    setLoading,
+  }) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
+      setLoading(true);
+      const media = await imageUpload(photo2);
 
-      const res = await patchDataAPI(
+      if (!media) return setError;
+      console.log(media[0].url);
+
+      await patchDataAPI(
         `petugas/updateAbsen/${date}/${userId}`,
         {
+          photo2: media[0].url,
           absenOut: hour,
           statusAbsen: statusAbsen,
         },
         auth.token,
       );
 
-      console.log(res.data.msg);
-
       dispatch({
         type: ABSEN_TYPES.PATCH_ABSEN_OUT,
         payload: {absenOut: hour, statusAbsen},
       });
 
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {success: res.data.msg},
+      setPhoto2('');
+      setLoading(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Berhasil melakukan absen keluar.',
+        text2: 'Berhasil melakukan Absensi hari ini.',
       });
     } catch (err) {
-      dispatch({
-        type: GLOBALTYPES.ALERT,
-        payload: {error: err.respone.data.msg},
+      console.log(err);
+      setLoading(false);
+      Toast.show({
+        type: 'error',
+        text1: err.response.data.msg,
       });
     }
   };

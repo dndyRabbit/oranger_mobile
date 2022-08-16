@@ -1,4 +1,5 @@
 import {ABSEN_TYPES} from '../actions/absenAction';
+import {GLOBALTYPES} from '../actions/globalTypes';
 
 const initialState = {
   absensi: [],
@@ -25,6 +26,8 @@ const absenReducer = (state = initialState, action) => {
           statusAbsen: action.payload.statusAbsen,
         },
       };
+    case GLOBALTYPES.RESET_TO_INITIAL_STATE:
+      return initialState;
     default:
       return state;
   }

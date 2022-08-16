@@ -25,69 +25,81 @@ const Approved = () => {
 
   return (
     <View style={{flex: 1, padding: 10}}>
-      {permissionApproved?.permissionApproved?.map((item, index) => (
-        <View
-          key={index}
-          style={{
-            borderRadius: 5,
-            borderWidth: 1,
-            borderColor: COLORS.primary,
-            marginBottom: 10,
-            padding: 10,
-          }}>
-          <View style={{flexDirection: 'row'}}>
-            <Text style={{...FONTS.body4}}>Tipe Perizinan: </Text>
-            <Text style={{...FONTS.body4}}>{item.type}</Text>
-          </View>
-          <View style={{flexDirection: 'row', marginBottom: 5}}>
-            <Text style={{...FONTS.body4}}>Alasan: </Text>
-            <Text style={{...FONTS.body4}}>{item.description}</Text>
-          </View>
-          <View style={{marginBottom: 10}}>
-            <Text style={{...FONTS.body4}}>Tanggal: </Text>
+      <ScrollView>
+        {permissionApproved?.permissionApproved?.map((item, index) => (
+          <View
+            key={index}
+            style={{
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor: COLORS.primary,
+              marginBottom: 10,
+              padding: 10,
+            }}>
             <View style={{flexDirection: 'row'}}>
+              <Text style={{...FONTS.body4}}>Tipe Perizinan: </Text>
+              <Text style={{...FONTS.body4}}>{item.type}</Text>
+            </View>
+            <View style={{flexDirection: 'row', marginBottom: 5}}>
+              <Text style={{...FONTS.body4}}>Alasan: </Text>
+              <Text style={{...FONTS.body4}}>{item.description}</Text>
+            </View>
+            <View style={{flexDirection: 'row', marginBottom: 5}}>
+              <Text style={{...FONTS.body4}}>Tanggal Pengajuan: </Text>
               <Text style={{...FONTS.body4}}>
-                {format(new Date(item.startDate), 'yyyy-MM-dd')}
+                {format(new Date(item?.date), 'yyyy-MM-dd')}
               </Text>
-              <Text style={{...FONTS.body4, marginHorizontal: 5}}>s/d</Text>
+            </View>
+            <View style={{marginBottom: 10}}>
+              <Text style={{...FONTS.body4}}>Tanggal Izin: </Text>
+              <View style={{flexDirection: 'row'}}>
+                <Text style={{...FONTS.body4}}>
+                  {format(new Date(item?.startDate), 'yyyy-MM-dd')}
+                </Text>
+                <Text style={{...FONTS.body4, marginHorizontal: 5}}>s/d</Text>
+                <Text style={{...FONTS.body4}}>
+                  {format(new Date(item?.endDate), 'yyyy-MM-dd')}
+                </Text>
+              </View>
+            </View>
+
+            <View style={{marginBottom: 10}}>
+              <Text style={{...FONTS.body4}}>Bukti foto: </Text>
+              <Text style={{...FONTS.body5, fontStyle: 'italic'}}>
+                {item.evidence ? (
+                  <Text
+                    style={{
+                      ...FONTS.body5,
+                      fontStyle: 'italic',
+                      color: 'green',
+                    }}>
+                    Gambar sudah ter-upload
+                  </Text>
+                ) : (
+                  <Text
+                    style={{...FONTS.body5, fontStyle: 'italic', color: 'red'}}>
+                    Belum ada gambar, upload terlebih dahulu
+                  </Text>
+                )}
+              </Text>
+            </View>
+
+            <View>
               <Text style={{...FONTS.body4}}>
-                {format(new Date(item.endDate), 'yyyy-MM-dd')}
+                Status:{'  '}
+                <Text
+                  style={{
+                    ...FONTS.body4,
+                    fontStyle: 'italic',
+                    color: item.status === 'Disetujui' ? 'green' : 'red',
+                  }}>
+                  {item.status}
+                </Text>
               </Text>
             </View>
           </View>
-
-          <View style={{marginBottom: 10}}>
-            <Text style={{...FONTS.body4}}>Bukti foto: </Text>
-            <Text style={{...FONTS.body5, fontStyle: 'italic'}}>
-              {item.evidence ? (
-                <Text
-                  style={{
-                    ...FONTS.body5,
-                    fontStyle: 'italic',
-                    color: 'green',
-                  }}>
-                  Gambar sudah ter-upload
-                </Text>
-              ) : (
-                <Text
-                  style={{...FONTS.body5, fontStyle: 'italic', color: 'red'}}>
-                  Belum ada gambar, upload terlebih dahulu
-                </Text>
-              )}
-            </Text>
-          </View>
-
-          <View>
-            <Text style={{...FONTS.body4}}>
-              Status:{'  '}
-              <Text
-                style={{...FONTS.body4, fontStyle: 'italic', color: 'green'}}>
-                {item.status}
-              </Text>
-            </Text>
-          </View>
-        </View>
-      ))}
+        ))}
+      </ScrollView>
     </View>
   );
 };
