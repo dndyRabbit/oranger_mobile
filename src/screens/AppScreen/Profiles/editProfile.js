@@ -162,7 +162,7 @@ const EditProfile = ({navigation}) => {
               fontSize: 12,
               color: '#000',
             }}>
-            {auth.user.gender}
+            {auth.user.gender === '01' ? 'perempuan' : 'laki-laki'}
           </Text>
         </View>
         <View style={{marginBottom: 10}}></View>

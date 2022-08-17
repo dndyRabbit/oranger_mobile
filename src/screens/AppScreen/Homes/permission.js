@@ -58,7 +58,6 @@ const Permission = ({navigation, route}) => {
     displayedDate: moment(),
   });
   const [loading, setLoading] = useState(false);
-  const [refresh, setRefresh] = useState(false);
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
@@ -82,10 +81,6 @@ const Permission = ({navigation, route}) => {
     [],
   );
   const userLocation = useCallback(getRuteLocation({auth}), []);
-
-  const wait = timeout => {
-    return new Promise(resolve => setTimeout(resolve, timeout));
-  };
 
   useEffect(() => {
     if (
@@ -112,11 +107,6 @@ const Permission = ({navigation, route}) => {
 
     console.log(permission, 'THIS IS PERMISSION');
     console.log(permissionApproved, 'THIS IS PERMISSION APRROVED');
-  }, []);
-
-  const refetchingDatas = useCallback(() => {
-    setRefresh(true);
-    wait(4000).then(() => setRefresh(false));
   }, []);
 
   const [routes] = useState([
@@ -345,14 +335,7 @@ const Permission = ({navigation, route}) => {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={styles.container}
-      refreshControl={
-        <RefreshControl
-          refreshing={refresh}
-          onRefresh={() => refetchingDatas()}
-        />
-      }>
+    <ScrollView contentContainerStyle={styles.container}>
       <RenderHeader txt={label} back={true} navigation={navigation} />
       <RenderSubmitButton />
       <TabView

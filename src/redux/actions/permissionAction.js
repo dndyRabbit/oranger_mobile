@@ -111,8 +111,6 @@ export const getUserPermissionIsApproved =
   ({auth, userId}) =>
   async dispatch => {
     try {
-      dispatch({type: GLOBALTYPES.ALERT, payload: {loading: true}});
-
       const res = await getDataAPI(
         `getUserPermissionIsApproved/${userId}`,
         auth.token,
